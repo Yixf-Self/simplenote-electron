@@ -17,7 +17,7 @@ export type SystemTag = 'markdown' | 'pinned' | 'published' | 'shared';
 export type Note = {
   content: string;
   creationDate: SecondsEpoch;
-  deleted: boolean;
+  deleted: boolean | 0 | 1;
   modificationDate: SecondsEpoch;
   publishURL?: string;
   shareURL?: string;
@@ -57,6 +57,11 @@ export type Bucket<T = unknown> = {
   remove(entityId: EntityId): void;
   update(entityId: EntityId, data: T): void;
 };
+
+///////////////////////////////////////
+// Simperium Types
+///////////////////////////////////////
+export type ConnectionState = 'green' | 'red' | 'offline';
 
 ///////////////////////////////////////
 // Application Types

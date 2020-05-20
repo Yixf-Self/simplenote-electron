@@ -1,0 +1,208 @@
+import { combineReducers } from 'redux';
+import { v4 as uuid } from 'uuid';
+
+import * as A from '../action-types';
+import * as T from '../../types';
+
+export const analyticsAllowed: A.Reducer<boolean | null> = (
+  state = null,
+  action
+) => {
+  switch (action.type) {
+    case 'SET_ANALYTICS':
+      return action.allowAnalytics;
+
+    default:
+      return state;
+  }
+};
+
+export const notes: A.Reducer<Map<T.EntityId, T.Note>> = (
+  state = new Map(),
+  action
+) => {
+  switch (action.type) {
+    case 'CREATE_NOTE_WITH_ID':
+      return new Map(state).set(action.noteId, {
+        content: '',
+        creationDate: Date.now() / 1000,
+        modificationDate: Date.now() / 1000,
+        deleted: false,
+        publishURL: '',
+        shareURL: '',
+        systemTags: [],
+        tags: [],
+      });
+
+    case 'DELETE_NOTE_FOREVER': {
+      if (!state.has(action.noteId)) {
+        return state;
+      }
+
+      const next = new Map(state);
+      next.delete(action.noteId);
+      return next;
+    }
+
+    case 'EDIT_NOTE': {
+      if (!state.has(action.noteId)) {
+        return state;
+      }
+
+      const next = { ...state.get(action.noteId)!, ...action.changes };
+      next.content = next.content
+        .replace(/^(\s*)- \[ \](\s)/gm, '$1\ue000$2')
+        .replace(/^(\s*)- \[x\](\s)/gim, '$1\ue001$2');
+
+      return new Map(state).set(action.noteId, next);
+    }
+
+    case 'IMPORT_NOTE_WITH_ID': {
+      const note = { ...action.note };
+      note.content = note.content
+        .replace(/^(\s*)- \[ \](\s)/gm, '$1\ue000$2')
+        .replace(/^(\s*)- \[x\](\s)/gim, '$1\ue001$2');
+
+      return new Map(state).set(action.noteId, note);
+    }
+
+    case 'MARKDOWN_NOTE': {
+      if (!state.has(action.noteId)) {
+        return state;
+      }
+
+      const note = state.get(action.noteId)!;
+      const alreadyMarkdown = note.systemTags.includes('markdown');
+      if (alreadyMarkdown === action.shouldEnableMarkdown) {
+        return state;
+      }
+
+      const systemTags = action.shouldEnableMarkdown
+        ? [...note.systemTags, 'markdown' as T.SystemTag]
+        : note.systemTags.filter((tag) => tag !== 'markdown');
+
+      return new Map(state).set(action.noteId, { ...note, systemTags });
+    }
+
+    case 'PIN_NOTE': {
+      if (!state.has(action.noteId)) {
+        return state;
+      }
+
+      const note = state.get(action.noteId)!;
+      const alreadyPinned = note.systemTags.includes('pinned');
+      if (alreadyPinned === action.shouldPin) {
+        return state;
+      }
+
+      const systemTags = action.shouldPin
+        ? [...note.systemTags, 'pinned' as T.SystemTag]
+        : note.systemTags.filter((tag) => tag !== 'pinned');
+
+      return new Map(state).set(action.noteId, { ...note, systemTags });
+    }
+
+    case 'PUBLISH_NOTE': {
+      if (!state.has(action.noteId)) {
+        return state;
+      }
+
+      const note = state.get(action.noteId)!;
+      const alreadyPinned = note.systemTags.includes('published');
+      if (alreadyPinned === action.shouldPublish) {
+        return state;
+      }
+
+      const systemTags = action.shouldPublish
+        ? [...note.systemTags, 'published' as T.SystemTag]
+        : note.systemTags.filter((tag) => tag !== 'published');
+
+      return new Map(state).set(action.noteId, { ...note, systemTags });
+    }
+
+    case 'RESTORE_NOTE':
+      if (!state.has(action.noteId)) {
+        return state;
+      }
+
+      return new Map(state).set(action.noteId, {
+        ...state.get(action.noteId)!,
+        deleted: false,
+      });
+
+    case 'TRASH_NOTE':
+      if (!state.has(action.noteId)) {
+        return state;
+      }
+
+      return new Map(state).set(action.noteId, {
+        ...state.get(action.noteId)!,
+        deleted: true,
+      });
+
+    default:
+      return state;
+  }
+};
+
+export const tags: A.Reducer<[
+  Map<T.EntityId, T.Tag>,
+  Map<string, T.EntityId>
+]> = (state = [new Map(), new Map()], action) => {
+  const [tagIds, tagNames] = state;
+
+  switch (action.type) {
+    case 'EDIT_NOTE': {
+      if (
+        !action.changes.tags?.some(
+          (tag) => !tagNames.has(tag.toLocaleLowerCase())
+        )
+      ) {
+        return state;
+      }
+
+      const nextIds = new Map(tagIds);
+      const nextNames = new Map(tagNames);
+
+      action.changes.tags.forEach((tag) => {
+        if (!nextNames.has(tag)) {
+          const id = uuid();
+          nextIds.set(id, { name: tag });
+          nextNames.set(tag.toLocaleLowerCase(), id);
+        }
+      });
+
+      return [nextIds, nextNames];
+    }
+
+    case 'IMPORT_NOTE_WITH_ID': {
+      if (
+        !action.note.tags?.some((tag) => !tagNames.has(tag.toLocaleLowerCase()))
+      ) {
+        return state;
+      }
+
+      const nextIds = new Map(tagIds);
+      const nextNames = new Map(tagNames);
+
+      action.note.tags.forEach((tag) => {
+        if (!nextNames.has(tag)) {
+          const id = uuid();
+          nextIds.set(id, { name: tag });
+          nextNames.set(tag.toLocaleLowerCase(), id);
+        }
+      });
+
+      return [nextIds, nextNames];
+    }
+
+    default:
+      return state;
+  }
+};
+
+export default combineReducers({
+  analyticsAllowed,
+  notes,
+  tags,
+});
