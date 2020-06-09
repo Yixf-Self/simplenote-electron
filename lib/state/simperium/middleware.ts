@@ -2,7 +2,8 @@ import { default as createClient } from 'simperium';
 
 import debugFactory from 'debug';
 import actions from '../actions';
-import { start as startConnectionMonitor } from './connection-monitor';
+import { start as startConnectionMonitor } from './functions/connection-monitor';
+import { getAccountName } from './functions/username-monitor';
 
 import * as A from '../action-types';
 import * as S from '../';
@@ -18,27 +19,12 @@ export const initSimperium = (
 ): S.Middleware => (store) => {
   const client = createClient('chalk-bump-f49', token);
 
-  startConnectionMonitor(client, store);
-
-  client.on('message', (message: string) => {
-    if (!message.startsWith('0:auth:')) {
-      return;
-    }
-
-    const [prefix, authenticatedUsername] = message.split('0:auth:');
-    debug(`authenticated: ${authenticatedUsername}`);
-
-    if (null === username) {
-      return store.dispatch(
-        actions.settings.setAccountName(authenticatedUsername)
-      );
-    }
-
-    if (username !== authenticatedUsername) {
-      debug(`was logged in as ${username} - logging out`);
-      return logout();
-    }
+  getAccountName(client).then((accountName) => {
+    debug(`authenticated: ${accountName}`);
+    store.dispatch(actions.settings.setAccountName(accountName));
   });
+
+  startConnectionMonitor(client, store);
 
   client.on('unauthorized', () => {
     logout();
@@ -70,8 +56,8 @@ export const initSimperium = (
 
     switch (action.type) {
       case 'LOGOUT':
-        throw new Error('logged out!');
-        // client.reset().then(() => logout());
+        client.end();
+        logout();
         return result;
     }
 

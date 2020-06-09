@@ -1,6 +1,6 @@
 import type { Client } from 'simperium';
 
-import * as S from '../';
+import * as S from '../../';
 
 export const start = (client: Client, { dispatch, getState }: S.Store) => {
   let lastMessageAt = -Infinity;
