@@ -6,6 +6,10 @@
     "buildResources": "resources"
   },
   "files": ["desktop", "dist", "shared"],
+  "protocols": {
+    "name": "Simplenote",
+    "schemes": ["simplnote"]
+  },
   "mac": {
     "icon": "./resources/images/app-icon.icns",
     "category": "public.app-category.social-networking",
