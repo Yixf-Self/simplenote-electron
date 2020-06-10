@@ -32,9 +32,11 @@ export const notes: A.Reducer<Map<T.EntityId, T.Note>> = (
         shareURL: '',
         systemTags: [],
         tags: [],
+        ...action.note,
       });
 
-    case 'DELETE_NOTE_FOREVER': {
+    case 'DELETE_NOTE_FOREVER':
+    case 'REMOTE_NOTE_DELETE_FOREVER': {
       if (!state.has(action.noteId)) {
         return state;
       }
@@ -44,12 +46,23 @@ export const notes: A.Reducer<Map<T.EntityId, T.Note>> = (
       return next;
     }
 
-    case 'EDIT_NOTE': {
-      if (!state.has(action.noteId)) {
-        return state;
-      }
+    case 'EDIT_NOTE':
+    case 'REMOTE_NOTE_UPDATE': {
+      const prev = state.get(action.noteId) ?? {
+        content: '',
+        creationDate: Date.now() / 1000,
+        modificationDate: Date.now() / 1000,
+        deleted: false,
+        publishURL: '',
+        shareURL: '',
+        systemTags: [],
+        tags: [],
+      };
 
-      const next = { ...state.get(action.noteId)!, ...action.changes };
+      const next = {
+        ...prev,
+        ...('EDIT_NOTE' === action.type ? action.changes : action.note),
+      };
       next.content = next.content
         .replace(/^(\s*)- \[ \](\s)/gm, '$1\ue000$2')
         .replace(/^(\s*)- \[x\](\s)/gim, '$1\ue001$2');

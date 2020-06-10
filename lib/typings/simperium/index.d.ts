@@ -48,25 +48,26 @@ export interface BucketObject<T> {
   isIndexing?: boolean;
 }
 
-type EntityCallback<T, E = Error | null> = (
+export type EntityCallback<T, E = Error | null> = (
   error: E extends null ? null : NonNullable<E>,
   entity: E extends null ? T : undefined
 ) => void;
 
-type EntitiesCallback<T, E = Error | null> = (
+export type EntitiesCallback<T, E = Error | null> = (
   error: E extends null ? null : NonNullable<E>,
   entities: E extends null ? T[] : undefined
 ) => void;
 
 export interface BucketStore<T, Q = {}> {
-  get(entityId: EntityId): Promise<BucketObject<T>>;
-  find(query?: Q): Promise<ReadonlyArray<BucketObject<T>>>;
-  remove(entityId: EntityId): Promise<void>;
+  get(entityId: EntityId, callback: EntityCallback<BucketObject<T>>): void;
+  find(query: Q, callback: EntitiesCallback<BucketObject<T>>): void;
+  remove(entityId: EntityId, callback: () => void): void;
   update(
     entityId: EntityId,
     entity: T,
-    isIndexing: boolean
-  ): Promise<BucketObject<T>>;
+    isIndexing: boolean,
+    callback: EntityCallback<BucketObject<T>>
+  ): void;
 }
 
 export interface Ghost<T> {
@@ -124,7 +125,7 @@ interface BucketEvent<T> extends SimperiumEvent {
   remove: (entityId: EntityId) => void;
 }
 
-interface RemoteInfo<T> {
+export interface RemoteInfo<T> {
   isIndexing: boolean;
   original: T;
   patch: JSONDiff<T>;
@@ -204,7 +205,7 @@ interface Channel<T> extends CustomEventEmitter<ChannelEvent<T>> {
 }
 
 interface ClientConfig<Buckets> {
-  bucketStoreProvider: <Name extends keyof Buckets>(
+  objectStoreProvider: <Name extends keyof Buckets>(
     bucket: Bucket<Name, Buckets[Name]>
   ) => BucketStore<Buckets[Name]>;
   ghostStoreProvider: <Name extends keyof Buckets>(

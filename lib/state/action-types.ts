@@ -69,10 +69,6 @@ export type IncreaseFontSize = Action<'INCREASE_FONT_SIZE'>;
 export type Logout = Action<'LOGOUT'>;
 export type OpenNote = Action<'OPEN_NOTE', { noteId?: T.EntityId }>;
 export type OpenTag = Action<'OPEN_TAG', { tagId: T.EntityId }>;
-export type RemoteNoteUpdate = Action<
-  'REMOTE_NOTE_UPDATE',
-  { noteId: T.EntityId; data: T.Note }
->;
 export type ResetFontSize = Action<'RESET_FONT_SIZE'>;
 export type RestoreOpenNote = Action<'RESTORE_OPEN_NOTE'>;
 export type Search = Action<'SEARCH', { searchQuery: string }>;
@@ -154,6 +150,14 @@ export type ChangeConnectionStatus = Action<
   'CHANGE_CONNECTION_STATUS',
   { status: T.ConnectionState }
 >;
+export type RemoteNoteUpdate = Action<
+  'REMOTE_NOTE_UPDATE',
+  { noteId: T.EntityId; note: T.Note }
+>;
+export type RemoteNoteDeleteForever = Action<
+  'REMOTE_NOTE_DELETE_FOREVER',
+  { noteId: T.EntityId }
+>;
 
 export type ActionType =
   | ChangeConnectionStatus
@@ -172,11 +176,12 @@ export type ActionType =
   | IncreaseFontSize
   | Logout
   | MarkdownNote
-  | RemoteNoteUpdate
   | OpenNote
   | OpenTag
   | PinNote
   | PublishNote
+  | RemoteNoteUpdate
+  | RemoteNoteDeleteForever
   | ResetFontSize
   | RestoreOpenNote
   | RestoreNote

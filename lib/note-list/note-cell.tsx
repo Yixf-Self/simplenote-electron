@@ -20,6 +20,7 @@ type OwnProps = {
 type StateProps = {
   displayMode: T.ListDisplayMode;
   isOpened: boolean;
+  lastUpdated: number;
   note?: T.Note;
   searchQuery: string;
 };
@@ -32,9 +33,32 @@ type DispatchProps = {
 type Props = OwnProps & StateProps & DispatchProps;
 
 export class NoteCell extends Component<Props> {
-  componentDidUpdate(prevProps) {
+  state = {
+    lastUpdated: -Infinity,
+  };
+
+  static getDerivedStateFromProps(props: Props) {
+    return { lastUpdated: props.lastUpdated };
+  }
+
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.note?.content !== this.props.note?.content) {
       this.props.invalidateHeight();
+    }
+
+    // since the lastUpdated time doesn't change unless
+    // we get more updates we need to manually trigger
+    // a re-render at some point in the future to clear
+    // out the CSS class otherwise the next update won't
+    // be triggering the animation
+    if (Date.now() - this.state.lastUpdated < 1200) {
+      setTimeout(
+        () =>
+          this.setState(() => ({
+            lastUpdated: this.props.lastUpdated,
+          })),
+        1200
+      );
     }
   }
 
@@ -49,6 +73,7 @@ export class NoteCell extends Component<Props> {
       searchQuery,
       style,
     } = this.props;
+    const { lastUpdated } = this.state;
 
     if (!note) {
       return <div>Couldn't find note</div>;
@@ -60,6 +85,7 @@ export class NoteCell extends Component<Props> {
     const classes = classNames('note-list-item', {
       'note-list-item-selected': isOpened,
       'note-list-item-pinned': isPinned,
+      'note-recently-updated': Date.now() - lastUpdated < 1200,
       'published-note': isPublished,
     });
 
@@ -102,6 +128,7 @@ const mapStateToProps: S.MapState<StateProps, OwnProps> = (
 ) => ({
   displayMode: state.settings.noteDisplay,
   isOpened: state.ui.openedNote === noteId,
+  lastUpdated: state.simperium.noteLastUpdated.get(noteId) ?? -Infinity,
   note: state.data.notes.get(noteId),
   searchQuery: state.ui.searchQuery,
 });

@@ -188,6 +188,7 @@ export const middleware: S.Middleware = (store) => {
     switch (action.type) {
       case 'CREATE_NOTE_WITH_ID':
       case 'IMPORT_NOTE_WITH_ID':
+      case 'REMOTE_NOTE_UPDATE':
         searchState.notes.set(action.noteId, {
           content: action.note?.content?.toLocaleLowerCase() ?? '',
           tags: new Set(
@@ -201,6 +202,7 @@ export const middleware: S.Middleware = (store) => {
         return next(withSearch(action));
 
       case 'DELETE_NOTE_FOREVER':
+      case 'REMOTE_NOTE_DELETE_FOREVER':
         searchState.notes.delete(action.noteId);
         return next(withNextNote(withSearch(action)));
 
