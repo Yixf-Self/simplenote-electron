@@ -346,7 +346,6 @@ export class Auth extends Component<Props> {
 
     const ipc = getIpcRenderer();
     ipc.on('wpLogin', (event, url) => {
-      debugger;
       const { searchParams } = new URL(url);
 
       const errorCode = searchParams.get('error')
@@ -373,9 +372,8 @@ export class Auth extends Component<Props> {
           return this.authError('An error was encountered while signing in.');
       }
 
-      this.closeAuthWindow();
-
       if (authState !== this.authState) {
+        console.log('authState match failed');
         return;
       }
 
@@ -384,14 +382,10 @@ export class Auth extends Component<Props> {
   };
 
   authError = (errorMessage) => {
-    this.closeAuthWindow();
-
     this.setState({
       passwordErrorMessage: errorMessage,
     });
   };
-
-  closeAuthWindow = () => this.authWindow && this.authWindow.close();
 
   onForgot = (event) => {
     event.preventDefault();

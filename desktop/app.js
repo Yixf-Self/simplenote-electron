@@ -173,7 +173,7 @@ module.exports = function main() {
   }
 
   if (!app.isDefaultProtocolClient('simplenote')) {
-    // Define custom protocol handler. Deep linking works on packaged versions of the application!
+    // Define custom protocol handler. This allows for deeplinking into the app from simplenote://
     app.setAsDefaultProtocolClient('simplenote');
   }
 
