@@ -178,7 +178,7 @@ export class Auth extends Component<Props> {
               Forgot your password?
             </a>
           )}
-          {!isCreatingAccount && (
+          {isElectron && !isCreatingAccount && (
             <Fragment>
               <span className="or">Or</span>
               <span className="or-line"></span>
@@ -373,10 +373,8 @@ export class Auth extends Component<Props> {
       }
 
       if (authState !== this.authState) {
-        console.log('authState match failed');
         return;
       }
-
       this.props.tokenLogin(userEmail, simpToken);
     });
   };

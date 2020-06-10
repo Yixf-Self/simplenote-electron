@@ -4,6 +4,7 @@ import { parse } from 'cookie';
 
 import analytics from './analytics';
 import getConfig from '../get-config';
+import { bootWithToken } from './boot-with-auth';
 import { boot as bootWithoutAuth } from './boot-without-auth';
 import { boot as bootLoggingOut } from './logging-out';
 import { isElectron } from './utils/platform';
@@ -91,24 +92,22 @@ const run = (
   createWelcomeNote: boolean
 ) => {
   if (token) {
-    import('./boot-with-auth').then(({ bootWithToken }) => {
-      bootWithToken(
-        () => {
-          bootLoggingOut();
-          analytics.tracks.recordEvent('user_signed_out');
-          clearStorage().then(() => {
-            if (window.webConfig?.signout) {
-              window.webConfig.signout(forceReload);
-            } else {
-              forceReload();
-            }
-          });
-        },
-        token,
-        username,
-        createWelcomeNote
-      );
-    });
+    bootWithToken(
+      () => {
+        bootLoggingOut();
+        analytics.tracks.recordEvent('user_signed_out');
+        clearStorage().then(() => {
+          if (window.webConfig?.signout) {
+            window.webConfig.signout(forceReload);
+          } else {
+            forceReload();
+          }
+        });
+      },
+      token,
+      username,
+      createWelcomeNote
+    );
   } else {
     bootWithoutAuth(
       (token: string, username: string, createWelcomeNote: boolean) => {
