@@ -8,7 +8,7 @@
   "files": ["desktop", "dist", "shared"],
   "protocols": {
     "name": "Simplenote",
-    "schemes": ["simplnote"]
+    "schemes": ["simplenote"]
   },
   "mac": {
     "icon": "./resources/images/app-icon.icns",
