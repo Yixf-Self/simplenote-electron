@@ -59,22 +59,6 @@ const filteredNotes: A.Reducer<T.EntityId[]> = (
   return action.meta.searchResults.noteIds;
 };
 
-const noteRevisions: A.Reducer<T.NoteEntity[]> = (
-  state = emptyList as T.NoteEntity[],
-  action
-) => {
-  switch (action.type) {
-    case 'STORE_REVISIONS':
-      return action.revisions;
-    case 'CREATE_NOTE':
-    case 'OPEN_NOTE':
-    case 'SELECT_NOTE':
-      return emptyList as T.NoteEntity[];
-    default:
-      return state;
-  }
-};
-
 const openedNote: A.Reducer<T.EntityId | null> = (state = null, action) => {
   switch (action.type) {
     case 'CLOSE_NOTE':
@@ -100,23 +84,6 @@ const openedTag: A.Reducer<T.EntityId | null> = (state = null, action) => {
       return null;
     case 'OPEN_TAG':
       return action.tagId;
-    default:
-      return state;
-  }
-};
-
-const selectedRevision: A.Reducer<T.NoteEntity | null> = (
-  state = null,
-  action
-) => {
-  switch (action.type) {
-    case 'SELECT_REVISION':
-      return action.revision;
-    case 'CREATE_NOTE':
-    case 'OPEN_NOTE':
-    case 'REVISIONS_TOGGLE':
-    case 'SELECT_NOTE':
-      return null;
     default:
       return state;
   }
@@ -231,11 +198,9 @@ export default combineReducers({
   editMode,
   editingTags,
   filteredNotes,
-  noteRevisions,
   openedNote,
   openedTag,
   searchQuery,
-  selectedRevision,
   showNavigation,
   showNoteInfo,
   showNoteList,

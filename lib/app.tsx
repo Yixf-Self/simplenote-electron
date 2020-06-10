@@ -44,7 +44,6 @@ type DispatchProps = {
   increaseFontSize: () => any;
   openTagList: () => any;
   resetFontSize: () => any;
-  selectNote: (note: T.NoteEntity) => any;
   setAccountName: (name: string) => any;
   setLineLength: (length: T.LineLength) => any;
   setNoteDisplay: (displayMode: T.ListDisplayMode) => any;
@@ -272,7 +271,6 @@ const mapDispatchToProps: S.MapDispatch<DispatchProps> = (dispatch) => {
     increaseFontSize: () => dispatch(settingsActions.increaseFontSize()),
     openTagList: () => dispatch(toggleNavigation()),
     resetFontSize: () => dispatch(settingsActions.resetFontSize()),
-    selectNote: (note: T.NoteEntity) => dispatch(actions.ui.selectNote(note)),
     setAccountName: (name) => dispatch(settingsActions.setAccountName(name)),
     setLineLength: (length) => dispatch(settingsActions.setLineLength(length)),
     setNoteDisplay: (displayMode) =>

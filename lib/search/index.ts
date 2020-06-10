@@ -1,4 +1,3 @@
-import actions from '../state/actions';
 import { filterTags } from '../tag-suggestions';
 import { getTerms } from '../utils/filter-notes';
 
@@ -6,7 +5,7 @@ import * as A from '../state/action-types';
 import * as S from '../state';
 import * as T from '../types';
 
-const emptyList = [] as T.NoteEntity[];
+const emptyList = [] as unknown[];
 
 type SearchNote = {
   content: string;

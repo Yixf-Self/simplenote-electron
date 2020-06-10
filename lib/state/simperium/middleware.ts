@@ -11,13 +11,20 @@ import * as T from '../../types';
 
 const debug = debugFactory('simperium-middleware');
 
+type Buckets = {
+  note: T.Note;
+  preferences: T.Preferences;
+  tag: T.Tag;
+};
+
 export const initSimperium = (
   logout: () => any,
   token: string,
   username: string | null,
   createWelcomeNote: boolean
 ): S.Middleware => (store) => {
-  const client = createClient('chalk-bump-f49', token);
+  const client = createClient<Buckets>('chalk-bump-f49', token);
+  client.on('unauthorized', () => logout());
 
   getAccountName(client).then((accountName) => {
     debug(`authenticated: ${accountName}`);
@@ -25,10 +32,6 @@ export const initSimperium = (
   });
 
   startConnectionMonitor(client, store);
-
-  client.on('unauthorized', () => {
-    logout();
-  });
 
   const noteBucket = client.bucket('note');
 
@@ -56,8 +59,8 @@ export const initSimperium = (
 
     switch (action.type) {
       case 'LOGOUT':
-        client.end();
-        logout();
+        // client.end();
+        // logout();
         return result;
     }
 

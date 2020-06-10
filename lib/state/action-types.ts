@@ -79,10 +79,6 @@ export type Search = Action<'SEARCH', { searchQuery: string }>;
 export type SelectNote = Action<'SELECT_NOTE', { noteId: T.EntityId }>;
 export type SelectNoteAbove = Action<'SELECT_NOTE_ABOVE'>;
 export type SelectNoteBelow = Action<'SELECT_NOTE_BELOW'>;
-export type SelectRevision = Action<
-  'SELECT_REVISION',
-  { revision: T.NoteEntity }
->;
 export type SelectTrash = Action<'SELECT_TRASH'>;
 export type SetAnalytics = Action<'SET_ANALYTICS', { allowAnalytics: boolean }>;
 export type SetUnsyncedNoteIds = Action<
@@ -91,17 +87,9 @@ export type SetUnsyncedNoteIds = Action<
 >;
 export type ShowAllNotes = Action<'SHOW_ALL_NOTES'>;
 export type ShowDialog = Action<'SHOW_DIALOG', { dialog: T.DialogType }>;
-export type StoreRevisions = Action<
-  'STORE_REVISIONS',
-  { noteId: T.EntityId; revisions: T.NoteEntity[] }
->;
 export type SystemThemeUpdate = Action<
   'SYSTEM_THEME_UPDATE',
   { prefers: 'light' | 'dark' }
->;
-export type TagsLoaded = Action<
-  'TAGS_LOADED',
-  { tags: T.TagEntity[]; sortTagsAlpha: boolean }
 >;
 export type ToggleAnalytics = Action<'TOGGLE_ANALYTICS'>;
 export type ToggleAutoHideMenuBar = Action<'TOGGLE_AUTO_HIDE_MENU_BAR'>;
@@ -196,7 +184,6 @@ export type ActionType =
   | SelectNote
   | SelectNoteAbove
   | SelectNoteBelow
-  | SelectRevision
   | SelectTrash
   | SetAccountName
   | SetAnalytics
@@ -213,9 +200,7 @@ export type ActionType =
   | SetUnsyncedNoteIds
   | ShowAllNotes
   | ShowDialog
-  | StoreRevisions
   | SystemThemeUpdate
-  | TagsLoaded
   | ToggleAnalytics
   | ToggleAutoHideMenuBar
   | ToggleEditMode
