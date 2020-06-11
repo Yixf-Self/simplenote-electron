@@ -16,6 +16,7 @@ type StateProps = {
   isEditorActive: boolean;
   isSmallScreen: boolean;
   keyboardShortcuts: boolean;
+  lastUpdated: number;
   noteId: T.EntityId;
   note: T.Note;
 };
@@ -33,6 +34,7 @@ export class NoteEditor extends Component<Props> {
 
   componentDidMount() {
     this.toggleShortcuts(true);
+    setInterval(() => this?.forceUpdate?.(), 1000);
   }
 
   componentWillUnmount() {
@@ -109,7 +111,7 @@ export class NoteEditor extends Component<Props> {
   };
 
   render() {
-    const { editMode, note, noteId } = this.props;
+    const { editMode, lastUpdated, note, noteId } = this.props;
 
     if (!note) {
       return (
@@ -123,6 +125,10 @@ export class NoteEditor extends Component<Props> {
 
     return (
       <div className="note-editor theme-color-bg theme-color-fg">
+        <div>
+          Note last updated: {Math.floor((Date.now() - lastUpdated) / 1000)}s
+          ago ({new Date(lastUpdated).toLocaleTimeString()})
+        </div>
         {editMode ? (
           <NoteDetail
             storeFocusEditor={this.storeFocusEditor}
@@ -147,6 +153,7 @@ const mapStateToProps: S.MapState<StateProps> = (state) => ({
   editMode: state.ui.editMode,
   keyboardShortcuts: state.settings.keyboardShortcuts,
   isEditorActive: !state.ui.showNavigation,
+  lastUpdated: state.simperium.noteLastUpdated.get(state.ui.openedNote),
   noteId: state.ui.openedNote,
   note: state.data.notes.get(state.ui.openedNote),
   revision: state.ui.selectedRevision,

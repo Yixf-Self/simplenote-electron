@@ -123,6 +123,11 @@ interface BucketEvent<T> extends SimperiumEvent {
   index: (cv: ChangeVersion) => void;
   indexing: () => void;
   remove: (entityId: EntityId) => void;
+  update: (
+    entityId: EntityId,
+    updatedEntity: T,
+    remoteInfo: RemoteInfo<T>
+  ) => void;
 }
 
 export interface RemoteInfo<T> {
@@ -191,6 +196,7 @@ interface LocalQueueEvent<T> extends SimperiumEvent {
 interface LocalQueue<T> extends CustomEventEmitter<LocalQueueEvent<T>> {}
 
 interface ChannelEvent<T> extends SimperiumEvent {
+  acknowledge: (entityId: EntityId, change: Change<T>) => void;
   indexingStateChange: (isIndexing: boolean) => void;
   ready: () => void;
   send: (message: string) => void;

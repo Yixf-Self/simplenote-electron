@@ -1,4 +1,5 @@
 import * as S from './';
+import * as T from '../types';
 
 /**
  * "Narrow" views hide the note editor
@@ -12,3 +13,28 @@ export const getTheme: S.Selector<'light' | 'dark'> = (state) =>
   state.settings.theme === 'system'
     ? state.browser.systemTheme
     : state.settings.theme;
+
+const notesAreEqual = (a: T.Note | undefined, b: T.Note | undefined): boolean =>
+  !!(
+    a &&
+    b &&
+    a.content === b.content &&
+    a.creationDate === b.creationDate &&
+    a.modificationDate === b.modificationDate &&
+    a.deleted == b.deleted && // note the coercion because this could be 1/0/true/false
+    a.publishURL === b.publishURL &&
+    a.shareURL === b.shareURL &&
+    a.tags.length === b.tags.length &&
+    a.systemTags.length === b.systemTags.length &&
+    a.tags.every((tag) => b.tags.includes(tag)) &&
+    a.systemTags.every((tag) => b.systemTags.includes(tag))
+  );
+
+export const noteHasPendingChanges: S.Selector<boolean> = (
+  state,
+  noteId: T.EntityId
+) =>
+  !notesAreEqual(
+    state.data.notes.get(noteId),
+    state.simperium.noteGhosts.get(noteId)?.data
+  );

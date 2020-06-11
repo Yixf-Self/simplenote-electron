@@ -101,4 +101,4 @@ export type Middleware<Extension = {}> = ReduxMiddleware<
   Dispatch
 >;
 
-export type Selector<T> = (state: State) => T;
+export type Selector<T> = (state: State, ...args: any[]) => T;

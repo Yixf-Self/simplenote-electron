@@ -7,6 +7,7 @@ import { decorateWith, makeFilterDecorator } from './decorators';
 import { getTerms } from '../utils/filter-notes';
 import { noteTitleAndPreview } from '../utils/note-utils';
 import actions from '../state/actions';
+import * as selectors from '../state/selectors';
 
 import * as S from '../state';
 import * as T from '../types';
@@ -19,6 +20,7 @@ type OwnProps = {
 
 type StateProps = {
   displayMode: T.ListDisplayMode;
+  hasPendingChanges: boolean;
   isOpened: boolean;
   lastUpdated: number;
   note?: T.Note;
@@ -33,39 +35,24 @@ type DispatchProps = {
 type Props = OwnProps & StateProps & DispatchProps;
 
 export class NoteCell extends Component<Props> {
-  state = {
-    lastUpdated: -Infinity,
-  };
-
-  static getDerivedStateFromProps(props: Props) {
-    return { lastUpdated: props.lastUpdated };
-  }
-
   componentDidUpdate(prevProps: Props) {
     if (prevProps.note?.content !== this.props.note?.content) {
       this.props.invalidateHeight();
     }
 
-    // since the lastUpdated time doesn't change unless
-    // we get more updates we need to manually trigger
-    // a re-render at some point in the future to clear
-    // out the CSS class otherwise the next update won't
-    // be triggering the animation
-    if (Date.now() - this.state.lastUpdated < 1200) {
-      setTimeout(
-        () =>
-          this.setState(() => ({
-            lastUpdated: this.props.lastUpdated,
-          })),
-        1200
-      );
+    if (this.props.lastUpdated < 1000) {
+      setTimeout(() => {
+        this.forceUpdate();
+      }, 1000);
     }
   }
 
   render() {
     const {
       displayMode,
+      hasPendingChanges,
       isOpened,
+      lastUpdated,
       noteId,
       note,
       openNote,
@@ -73,7 +60,6 @@ export class NoteCell extends Component<Props> {
       searchQuery,
       style,
     } = this.props;
-    const { lastUpdated } = this.state;
 
     if (!note) {
       return <div>Couldn't find note</div>;
@@ -104,7 +90,10 @@ export class NoteCell extends Component<Props> {
           onClick={() => openNote(noteId)}
         >
           <div className="note-list-item-title">
-            <span>{decorateWith(decorators, title)}</span>
+            <span>
+              {hasPendingChanges && '⚠️ '}
+              {decorateWith(decorators, title)}
+            </span>
             {isPublished && (
               <div className="note-list-item-published-icon">
                 <PublishIcon />
@@ -127,6 +116,7 @@ const mapStateToProps: S.MapState<StateProps, OwnProps> = (
   { noteId }
 ) => ({
   displayMode: state.settings.noteDisplay,
+  hasPendingChanges: selectors.noteHasPendingChanges(state, noteId),
   isOpened: state.ui.openedNote === noteId,
   lastUpdated: state.simperium.noteLastUpdated.get(noteId) ?? -Infinity,
   note: state.data.notes.get(noteId),

@@ -3,6 +3,7 @@ import { default as createClient } from 'simperium';
 import debugFactory from 'debug';
 import actions from '../actions';
 import { NoteBucket } from './functions/note-bucket';
+import { NoteGhost } from './functions/note-ghost';
 import { start as startConnectionMonitor } from './functions/connection-monitor';
 import { getAccountName } from './functions/username-monitor';
 
@@ -11,6 +12,67 @@ import * as S from '../';
 import * as T from '../../types';
 
 const debug = debugFactory('simperium-middleware');
+
+/**
+ * An in memory implementation of GhostStore
+ *
+ * @param {Bucket} bucket instance to save ghost data for
+ */
+export default function GhostStore(bucket) {
+  this.bucket = bucket;
+  this.index = {};
+}
+
+GhostStore.prototype.getChangeVersion = function () {
+  return new Promise((resolve) => {
+    setImmediate(() => {
+      resolve(this.cv);
+    });
+  });
+};
+
+GhostStore.prototype.setChangeVersion = function (cv) {
+  return new Promise((resolve) => {
+    setImmediate(() => {
+      this.cv = cv;
+      resolve(cv);
+    });
+  });
+};
+
+GhostStore.prototype.put = function (id, version, data) {
+  return new Promise((resolve) => {
+    setImmediate(() => {
+      this.index[id] = JSON.stringify({ version: version, data: data });
+      resolve(true);
+    });
+  });
+};
+
+GhostStore.prototype.get = function (id) {
+  return new Promise((resolve) => {
+    setImmediate(() => {
+      var ghost = this.index[id];
+      if (!ghost) {
+        ghost = { data: {} };
+        ghost.key = id;
+        this.index[id] = JSON.stringify(ghost);
+      } else {
+        ghost = JSON.parse(ghost);
+      }
+      resolve(ghost);
+    });
+  });
+};
+
+GhostStore.prototype.remove = function (id) {
+  return new Promise((resolve) => {
+    setImmediate(() => {
+      delete this.index[id];
+      resolve();
+    });
+  });
+};
 
 function BucketStore() {
   this.objects = {};
@@ -65,6 +127,16 @@ export const initSimperium = (
           return new BucketStore();
       }
     },
+    ghostStoreProvider: (bucket) => {
+      switch (bucket.name) {
+        case 'note':
+          return new NoteGhost(store);
+
+        case 'preferences':
+        case 'tag':
+          return new GhostStore(bucket);
+      }
+    },
   });
   client.on('unauthorized', () => logout());
 
@@ -76,6 +148,32 @@ export const initSimperium = (
   startConnectionMonitor(client, store);
 
   const noteBucket = client.bucket('note');
+  noteBucket.on('update', (entityId, updatedEntity, remoteInfo) => {
+    console.log('bucket update event');
+    console.log(remoteInfo);
+    dispatch({
+      type: 'REMOTE_NOTE_UPDATE',
+      noteId: entityId,
+      note: updatedEntity,
+      remoteInfo,
+    });
+  });
+
+  noteBucket.channel.localQueue.on('send', (change) => {
+    dispatch({
+      type: 'SUBMIT_PENDING_CHANGE',
+      entityId: change.id,
+      ccid: change.ccid,
+    });
+  });
+
+  noteBucket.channel.on('acknowledge', (entityId, change) => {
+    dispatch({
+      type: 'ACKNOWLEDGE_PENDING_CHANGE',
+      entityId: entityId,
+      ccid: change.ccid,
+    });
+  });
 
   if (createWelcomeNote) {
     import(
@@ -127,7 +225,7 @@ export const initSimperium = (
       case 'PUBLISH_NOTE':
       case 'RESTORE_NOTE':
       case 'TRASH_NOTE':
-        noteBucket.touch(action.noteId);
+        setTimeout(() => noteBucket.touch(action.noteId), 10);
         return result;
 
       case 'LOGOUT':

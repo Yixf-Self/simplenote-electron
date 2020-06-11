@@ -1,3 +1,4 @@
+import type { ChangeVersion, Ghost, RemoteInfo } from 'simperium';
 import * as T from '../types';
 
 export type Action<
@@ -146,20 +147,50 @@ export type SetSystemTag = Action<
 /*
  * Simperium operations
  */
+export type AcknowledgePendingChange = Action<
+  'ACKNOWLEDGE_PENDING_CHANGE',
+  {
+    entityId: T.EntityId;
+    ccid: string;
+  }
+>;
 export type ChangeConnectionStatus = Action<
   'CHANGE_CONNECTION_STATUS',
   { status: T.ConnectionState }
 >;
 export type RemoteNoteUpdate = Action<
   'REMOTE_NOTE_UPDATE',
-  { noteId: T.EntityId; note: T.Note }
+  { noteId: T.EntityId; note: T.Note; remoteInfo?: RemoteInfo<T.Note> }
 >;
 export type RemoteNoteDeleteForever = Action<
   'REMOTE_NOTE_DELETE_FOREVER',
   { noteId: T.EntityId }
 >;
+export type RemoveNoteGhost = Action<
+  'REMOVE_NOTE_GHOST',
+  { noteId: T.EntityId }
+>;
+export type SaveNoteGhost = Action<
+  'SAVE_NOTE_GHOST',
+  { noteId: T.EntityId; ghost: Ghost<T.Note> }
+>;
+export type SetChangeVersion = Action<
+  'SET_CHANGE_VERSION',
+  {
+    bucketName: 'note' | 'tag' | 'preferences';
+    cv: ChangeVersion;
+  }
+>;
+export type SubmitPendingChange = Action<
+  'SUBMIT_PENDING_CHANGE',
+  {
+    entityId: T.EntityId;
+    ccid: string;
+  }
+>;
 
 export type ActionType =
+  | AcknowledgePendingChange
   | ChangeConnectionStatus
   | CloseNote
   | CloseDialog
@@ -182,9 +213,11 @@ export type ActionType =
   | PublishNote
   | RemoteNoteUpdate
   | RemoteNoteDeleteForever
+  | RemoveNoteGhost
   | ResetFontSize
   | RestoreOpenNote
   | RestoreNote
+  | SaveNoteGhost
   | Search
   | SelectNote
   | SelectNoteAbove
@@ -193,6 +226,7 @@ export type ActionType =
   | SetAccountName
   | SetAnalytics
   | SetAutoHideMenuBar
+  | SetChangeVersion
   | SetFocusMode
   | SetLineLength
   | SetNoteDisplay
@@ -205,6 +239,7 @@ export type ActionType =
   | SetUnsyncedNoteIds
   | ShowAllNotes
   | ShowDialog
+  | SubmitPendingChange
   | SystemThemeUpdate
   | ToggleAnalytics
   | ToggleAutoHideMenuBar

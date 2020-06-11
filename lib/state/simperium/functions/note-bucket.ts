@@ -17,6 +17,7 @@ export class NoteBucket implements BucketStore<T.Note> {
 
   get(noteId: T.EntityId, callback: EntityCallback<BucketObject<T.Note>>) {
     const note = this.store.getState().data.notes.get(noteId);
+
     callback(null, { id: noteId, data: note });
   }
 
