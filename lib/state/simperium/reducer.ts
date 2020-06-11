@@ -42,7 +42,7 @@ const noteGhosts: A.Reducer<Map<T.EntityId, Ghost<T.Note>>> = (
   }
 };
 
-const noteLastUpdated: A.Reducer<Map<T.EntityId, number>> = (
+const lastSync: A.Reducer<Map<T.EntityId, number>> = (
   state = emptyMap as Map<T.EntityId, number>,
   action
 ) => {
@@ -60,30 +60,15 @@ const noteLastUpdated: A.Reducer<Map<T.EntityId, number>> = (
   }
 };
 
-const pendingChanges: A.Reducer<Map<T.EntityId, Set<string>>> = (
-  state = emptyMap as Map<T.EntityId, Set<string>>,
+const lastRemoteUpdate: A.Reducer<Map<T.EntityId, number>> = (
+  state = emptyMap as Map<T.EntityId, number>,
   action
 ) => {
   switch (action.type) {
-    case 'ACKNOWLEDGE_PENDING_CHANGE': {
-      const prevSet = state.get(action.entityId);
-      if (!prevSet || !prevSet.has(action.ccid)) {
-        return state;
-      }
-
-      const nextSet = new Set(prevSet);
-      nextSet.delete(action.ccid);
-
-      return new Map(state).set(action.entityId, nextSet);
-    }
-
-    case 'SUBMIT_PENDING_CHANGE':
-      return new Map(state).set(
-        action.entityId,
-        state.has(action.entityId)
-          ? new Set(state.get(action.entityId)).add(action.ccid)
-          : new Set([action.ccid])
-      );
+    case 'REMOTE_NOTE_UPDATE':
+      return action.remoteInfo
+        ? new Map(state).set(action.noteId, Date.now())
+        : state;
 
     default:
       return state;
@@ -94,6 +79,6 @@ export default combineReducers({
   connectionStatus,
   noteChangeVersion,
   noteGhosts,
-  noteLastUpdated,
-  pendingChanges,
+  lastSync,
+  lastRemoteUpdate,
 });

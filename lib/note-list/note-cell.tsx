@@ -35,15 +35,24 @@ type DispatchProps = {
 type Props = OwnProps & StateProps & DispatchProps;
 
 export class NoteCell extends Component<Props> {
+  createdAt: number;
+
+  constructor(props: Props) {
+    super(props);
+
+    // prevent bouncing note updates on app boot
+    this.createdAt = Date.now();
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (prevProps.note?.content !== this.props.note?.content) {
       this.props.invalidateHeight();
     }
 
+    // make sure wereset our update indicator
+    // otherwise it won't re-animate on the next update
     if (this.props.lastUpdated < 1000) {
-      setTimeout(() => {
-        this.forceUpdate();
-      }, 1000);
+      setTimeout(() => this.forceUpdate(), 1000);
     }
   }
 
@@ -68,10 +77,12 @@ export class NoteCell extends Component<Props> {
     const { title, preview } = noteTitleAndPreview(note);
     const isPinned = note.systemTags.includes('pinned');
     const isPublished = !!note.publishURL;
+    const recentlyUpdated =
+      lastUpdated - this.createdAt > 1000 && Date.now() - lastUpdated < 1200;
     const classes = classNames('note-list-item', {
       'note-list-item-selected': isOpened,
       'note-list-item-pinned': isPinned,
-      'note-recently-updated': Date.now() - lastUpdated < 1200,
+      'note-recently-updated': recentlyUpdated,
       'published-note': isPublished,
     });
 
@@ -118,7 +129,7 @@ const mapStateToProps: S.MapState<StateProps, OwnProps> = (
   displayMode: state.settings.noteDisplay,
   hasPendingChanges: selectors.noteHasPendingChanges(state, noteId),
   isOpened: state.ui.openedNote === noteId,
-  lastUpdated: state.simperium.noteLastUpdated.get(noteId) ?? -Infinity,
+  lastUpdated: state.simperium.lastRemoteUpdate.get(noteId) ?? -Infinity,
   note: state.data.notes.get(noteId),
   searchQuery: state.ui.searchQuery,
 });

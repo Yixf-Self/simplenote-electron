@@ -15,7 +15,11 @@ export class NoteGhost implements GhostStore<T.Note> {
     return ghost ? Promise.resolve(ghost) : Promise.reject();
   }
 
-  put(noteId: T.EntityId, version: number, note: T.Note): Promise<Ghost<T>> {
+  put(
+    noteId: T.EntityId,
+    version: number,
+    note: T.Note
+  ): Promise<Ghost<T.Note>> {
     const ghost = { key: noteId, data: note, version };
     this.store.dispatch({ type: 'SAVE_NOTE_GHOST', noteId, ghost });
     return Promise.resolve(ghost);

@@ -153,7 +153,7 @@ const mapStateToProps: S.MapState<StateProps> = (state) => ({
   editMode: state.ui.editMode,
   keyboardShortcuts: state.settings.keyboardShortcuts,
   isEditorActive: !state.ui.showNavigation,
-  lastUpdated: state.simperium.noteLastUpdated.get(state.ui.openedNote),
+  lastUpdated: state.simperium.lastSync.get(state.ui.openedNote),
   noteId: state.ui.openedNote,
   note: state.data.notes.get(state.ui.openedNote),
   revision: state.ui.selectedRevision,
